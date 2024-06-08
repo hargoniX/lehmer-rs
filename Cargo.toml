@@ -13,4 +13,8 @@ license = "MIT"
 rand_core = "0.6.4"
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "lehmer_raw"
+harness = false
