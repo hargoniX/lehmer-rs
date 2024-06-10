@@ -97,9 +97,8 @@ macro_rules! lehmer_params {
     };
 }
 
-macro_rules! lehmer32_params {
-    ($name:ident, $A:expr, $M:expr) => {
-        lehmer_params!($name, Lehmer32, $A, $M, u32);
+macro_rules! lehmer32_traits {
+    ($name:ident) => {
         impl RngCore for $name {
             fn next_u32(&mut self) -> u32 {
                 self.next()
@@ -128,9 +127,15 @@ macro_rules! lehmer32_params {
     };
 }
 
-macro_rules! lehmer64_params {
+macro_rules! lehmer32_params {
     ($name:ident, $A:expr, $M:expr) => {
-        lehmer_params!($name, Lehmer64, $A, $M, u64);
+        lehmer_params!($name, Lehmer32, $A, $M, u32);
+        lehmer32_traits!($name);
+    };
+}
+
+macro_rules! lehmer64_traits {
+    ($name:ident) => {
         impl RngCore for $name {
             fn next_u32(&mut self) -> u32 {
                 self.next() as u32
@@ -156,6 +161,13 @@ macro_rules! lehmer64_params {
                 $name::new(u64::from_le_bytes(seed))
             }
         }
+    };
+}
+
+macro_rules! lehmer64_params {
+    ($name:ident, $A:expr, $M:expr) => {
+        lehmer_params!($name, Lehmer64, $A, $M, u64);
+        lehmer64_traits!($name);
     };
 }
 
