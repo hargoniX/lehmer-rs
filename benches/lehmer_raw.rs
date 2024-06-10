@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use lehmer::core::{NaiveParkMiller, NaiveParkMillerOld, Randu, Crawford, CrayRanf, ParkMillerEfficient};
+use lehmer::core::{NaiveParkMiller, NaiveParkMillerOld, Randu, Crawford, CrayRanf,
+  ParkMillerEfficient, BoroshNiederreiter, INMOS, Waterman, Fishman18, LEcuyer};
 use rand_core::{RngCore, SeedableRng};
 
 fn nth_park_miller<R: RngCore + SeedableRng>(n: u64) {
@@ -37,6 +38,26 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_with_input(BenchmarkId::new("ParkMillerEfficient", size), &size, |b, &size| {
         b.iter(|| nth_park_miller::<ParkMillerEfficient>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("BoroshNiederreiter", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<BoroshNiederreiter>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("INMOS", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<INMOS>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("Waterman", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<Waterman>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("Fishman18", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<Fishman18>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("LEcuyer", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<LEcuyer>(size));
     });
 
     group.finish();
