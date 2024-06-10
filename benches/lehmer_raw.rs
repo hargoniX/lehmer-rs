@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use lehmer::core::{NaiveParkMiller, NaiveParkMillerOld, Randu, Crawford, CrayRanf};
+use lehmer::core::{NaiveParkMiller, NaiveParkMillerOld, Randu, Crawford, CrayRanf, ParkMillerEfficient};
 use rand_core::{RngCore, SeedableRng};
 
 fn nth_park_miller<R: RngCore + SeedableRng>(n: u64) {
@@ -33,6 +33,10 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_with_input(BenchmarkId::new("CrayRanf", size), &size, |b, &size| {
         b.iter(|| nth_park_miller::<CrayRanf>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("ParkMillerEfficient", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<ParkMillerEfficient>(size));
     });
 
     group.finish();

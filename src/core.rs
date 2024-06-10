@@ -171,8 +171,24 @@ macro_rules! lehmer64_params {
     };
 }
 
+pub struct ParkMillerEfficient {
+    state: u32
+}
 
-// TODO: funky bithacks
+impl ParkMillerEfficient {
+    pub fn new(state: u32) -> ParkMillerEfficient {
+        ParkMillerEfficient { state }
+    }
+
+    pub fn next(&mut self) -> u32 {
+        let product = (self.state as u64) * 48271;
+        let x = ((product & 0x7fffffff) + (product >> 31)) as u32;
+        self.state = (x & 0x7fffffff) + (x >> 31);
+        self.state
+    }
+}
+
+
 lehmer32_params!(NaiveParkMillerOld, u32::pow(7, 5), u32::pow(2, 31) - 1);
 // The same as Fishman 20: see Knuths Seminumerical Algorithms, 3rd Ed., pages 106-108
 lehmer32_params!(NaiveParkMiller, 48_271, u32::pow(2, 31) - 1);
@@ -184,3 +200,22 @@ lehmer64_params!(CrayRanf, 44_485_709_377_909, u64::pow(2, 48));
 lehmer64_params!(BoroshNiederreiter, 1_812_433_253, u64::pow(2, 32));
 lehmer64_params!(INMOS, 1_664_525, u64::pow(2, 32));
 lehmer64_params!(Waterman, 1_566_083_941, u64::pow(2, 32));
+lehmer32_traits!(ParkMillerEfficient);
+
+#[cfg(test)]
+mod tests {
+  use crate::core::ParkMillerEfficient;
+  use crate::core::NaiveParkMiller;
+
+  /*
+   * We have a formal proof by bit blasting that this works but let's add a quickcheck test to make
+   * sure nobody ends up changing the implementation such that it breaks.
+   */
+  quickcheck! {
+      fn optimized_park_miller_correct(seed: u32) -> bool {
+          let mut r1 = NaiveParkMiller::new(seed);
+          let mut r2 = ParkMillerEfficient::new(seed);
+          r1.next() == r2.next()
+      }
+  }
+}
