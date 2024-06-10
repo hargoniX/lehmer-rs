@@ -162,7 +162,13 @@ macro_rules! lehmer64_params {
 
 // TODO: funky bithacks
 lehmer32_params!(NaiveParkMillerOld, u32::pow(7, 5), u32::pow(2, 31) - 1);
+// The same as Fishman 20: see Knuths Seminumerical Algorithms, 3rd Ed., pages 106-108
 lehmer32_params!(NaiveParkMiller, 48_271, u32::pow(2, 31) - 1);
+lehmer32_params!(Fishman18, 62_089_911, u32::pow(2, 31) - 1);
+lehmer32_params!(LEcuyer, 40692, u32::pow(2, 31) - 249);
 lehmer32_params!(Randu, 65_539, u32::pow(2, 31));
 lehmer32_params!(Crawford, 69_070, 2^32 - 5);
 lehmer64_params!(CrayRanf, 44_485_709_377_909, u64::pow(2, 48));
+lehmer64_params!(BoroshNiederreiter, 1_812_433_253, u64::pow(2, 32));
+lehmer64_params!(INMOS, 1_664_525, u64::pow(2, 32));
+lehmer64_params!(Waterman, 1_566_083_941, u64::pow(2, 32));
