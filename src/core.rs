@@ -176,14 +176,35 @@ pub struct ParkMillerEfficient {
 }
 
 impl ParkMillerEfficient {
-    pub fn new(state: u32) -> ParkMillerEfficient {
-        ParkMillerEfficient { state }
+    pub fn new(state: u32) -> Self {
+        Self { state }
     }
 
     pub fn next(&mut self) -> u32 {
         let product = (self.state as u64) * 48271;
         let x = ((product & 0x7fffffff) + (product >> 31)) as u32;
         self.state = (x & 0x7fffffff) + (x >> 31);
+        self.state
+    }
+}
+
+
+// TODO: Wikipedia recommends this set, check where it comes from to give it a proper name.
+pub struct FastU32 {
+    state: u32
+}
+
+impl FastU32 {
+    pub fn new(state: u32) -> Self {
+        Self { state }
+    }
+
+    pub fn next(&mut self) -> u32 {
+        let mut product = (self.state as u64) * 279470273;
+        product = (product & 0xffffffff) + ((5 * ((product >> 32) as u32)) as u64);
+        product = product + 4;
+        let x = (product as u32) + 5 * ((product >> 32) as u32);
+        self.state = x - 4;
         self.state
     }
 }
@@ -201,9 +222,13 @@ lehmer64_params!(BoroshNiederreiter, 1_812_433_253, u64::pow(2, 32));
 lehmer64_params!(INMOS, 1_664_525, u64::pow(2, 32));
 lehmer64_params!(Waterman, 1_566_083_941, u64::pow(2, 32));
 lehmer32_traits!(ParkMillerEfficient);
+lehmer32_params!(NaiveU32, 279_470_273, 0xfffffffb);
+lehmer32_traits!(FastU32);
 
 #[cfg(test)]
 mod tests {
+  use crate::core::FastU32;
+  use crate::core::NaiveU32;
   use crate::core::ParkMillerEfficient;
   use crate::core::NaiveParkMiller;
 
@@ -215,6 +240,12 @@ mod tests {
       fn optimized_park_miller_correct(seed: u32) -> bool {
           let mut r1 = NaiveParkMiller::new(seed);
           let mut r2 = ParkMillerEfficient::new(seed);
+          r1.next() == r2.next()
+      }
+
+      fn optimized_u32(seed : u32) -> bool {
+          let mut r1 = NaiveU32::new(seed);
+          let mut r2 = FastU32::new(seed);
           r1.next() == r2.next()
       }
   }
