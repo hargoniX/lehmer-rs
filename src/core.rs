@@ -209,27 +209,6 @@ impl FastU32 {
     }
 }
 
-// TODO: Wikipedia recommends this set, check where it comes from to give it a proper name.
-pub struct FastU32 {
-    state: u32
-}
-
-impl FastU32 {
-    pub fn new(state: u32) -> Self {
-        Self { state }
-    }
-
-    pub fn next(&mut self) -> u32 {
-        let mut product = (self.state as u64) * 279470273;
-        product = (product & 0xffffffff) + ((5 * ((product >> 32) as u32)) as u64);
-        product = product + 4;
-        let x = (product as u32) + 5 * ((product >> 32) as u32);
-        self.state = x - 4;
-        self.state
-    }
-}
-
-
 lehmer32_params!(NaiveParkMillerOld, u32::pow(7, 5), u32::pow(2, 31) - 1);
 // The same as Fishman 20: see Knuths Seminumerical Algorithms, 3rd Ed., pages 106-108
 lehmer32_params!(NaiveParkMiller, 48_271, u32::pow(2, 31) - 1);
