@@ -4,14 +4,14 @@ use core::f64;
 use lehmer::core::{Crawford, FastU32, NaiveU32};
 use rand::Rng;
 use rand_core::SeedableRng;
+use std::f64::consts::PI;
 
 const SEED: u64 = 333;
-const PI_5_DECIMALS: u32 = 314159;
 
 fn estimate_pi<R: Rng + SeedableRng>() -> u32 {
     fn is_precision_reached(count: u32, iterations: u32) -> bool {
         let estimate: f64 = (count as f64) * 4.0 / (iterations as f64);
-        (estimate * (u32::pow(10, 5)) as f64).trunc() as u32 == PI_5_DECIMALS
+        f64::abs(estimate - PI) < 0.00001
     }
 
     let mut rng = R::seed_from_u64(SEED);
