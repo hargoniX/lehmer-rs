@@ -1,4 +1,7 @@
-use rand_core::{impls::{fill_bytes_via_next, next_u64_via_u32}, RngCore, SeedableRng};
+use rand_core::{
+    impls::{fill_bytes_via_next, next_u64_via_u32},
+    RngCore, SeedableRng,
+};
 
 macro_rules! lehmer_impl {
     ($name:ident, $state:ty, $operating:ty) => {
@@ -12,7 +15,8 @@ macro_rules! lehmer_impl {
             }
 
             pub fn next(&mut self) -> $state {
-                self.state = ((self.state as $operating) * (A as $operating) % (M as $operating)) as $state;
+                self.state =
+                    ((self.state as $operating) * (A as $operating) % (M as $operating)) as $state;
                 self.state
             }
         }
@@ -74,17 +78,16 @@ impl<const A: u64, const M: u64> SeedableRng for Lehmer64<A, M> {
     }
 }
 
-
 macro_rules! lehmer_params {
     ($name:ident, $lehmer_name:ident, $A:expr, $M:expr, $state:ty) => {
         pub struct $name {
-            rng : $lehmer_name<{$A}, {$M}>
+            rng: $lehmer_name<{ $A }, { $M }>,
         }
 
         impl $name {
             pub fn new(state: $state) -> $name {
                 $name {
-                    rng: $lehmer_name::new(state)
+                    rng: $lehmer_name::new(state),
                 }
             }
 
@@ -92,8 +95,6 @@ macro_rules! lehmer_params {
                 self.rng.next()
             }
         }
-
-
     };
 }
 
@@ -172,7 +173,7 @@ macro_rules! lehmer64_params {
 }
 
 pub struct ParkMillerEfficient {
-    state: u32
+    state: u32,
 }
 
 impl ParkMillerEfficient {
@@ -188,6 +189,25 @@ impl ParkMillerEfficient {
     }
 }
 
+// TODO: Wikipedia recommends this set, check where it comes from to give it a proper name.
+pub struct FastU32 {
+    state: u32,
+}
+
+impl FastU32 {
+    pub fn new(state: u32) -> Self {
+        Self { state }
+    }
+
+    pub fn next(&mut self) -> u32 {
+        let mut product = (self.state as u64) * 279470273;
+        product = (product & 0xffffffff) + ((5 * ((product >> 32) as u32)) as u64);
+        product = product + 4;
+        let x = (product as u32) + 5 * ((product >> 32) as u32);
+        self.state = x - 4;
+        self.state
+    }
+}
 
 // TODO: Wikipedia recommends this set, check where it comes from to give it a proper name.
 pub struct FastU32 {
@@ -227,26 +247,26 @@ lehmer32_traits!(FastU32);
 
 #[cfg(test)]
 mod tests {
-  use crate::core::FastU32;
-  use crate::core::NaiveU32;
-  use crate::core::ParkMillerEfficient;
-  use crate::core::NaiveParkMiller;
+    use crate::core::FastU32;
+    use crate::core::NaiveParkMiller;
+    use crate::core::NaiveU32;
+    use crate::core::ParkMillerEfficient;
 
-  /*
-   * We have a formal proof by bit blasting that this works but let's add a quickcheck test to make
-   * sure nobody ends up changing the implementation such that it breaks.
-   */
-  quickcheck! {
-      fn optimized_park_miller_correct(seed: u32) -> bool {
-          let mut r1 = NaiveParkMiller::new(seed);
-          let mut r2 = ParkMillerEfficient::new(seed);
-          r1.next() == r2.next()
-      }
+    /*
+     * We have a formal proof by bit blasting that this works but let's add a quickcheck test to make
+     * sure nobody ends up changing the implementation such that it breaks.
+     */
+    quickcheck! {
+        fn optimized_park_miller_correct(seed: u32) -> bool {
+            let mut r1 = NaiveParkMiller::new(seed);
+            let mut r2 = ParkMillerEfficient::new(seed);
+            r1.next() == r2.next()
+        }
 
-      fn optimized_u32(seed : u32) -> bool {
-          let mut r1 = NaiveU32::new(seed);
-          let mut r2 = FastU32::new(seed);
-          r1.next() == r2.next()
-      }
-  }
+        fn optimized_u32(seed : u32) -> bool {
+            let mut r1 = NaiveU32::new(seed);
+            let mut r2 = FastU32::new(seed);
+            r1.next() == r2.next()
+        }
+    }
 }

@@ -1,6 +1,10 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use lehmer::core::{NaiveParkMiller, NaiveParkMillerOld, Randu, Crawford, CrayRanf,
-  ParkMillerEfficient, BoroshNiederreiter, INMOS, Waterman, Fishman18, LEcuyer, NaiveU32, FastU32};
+
+use lehmer::core::{
+    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, NaiveParkMiller,
+    NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
+};
+
 use rand_core::{RngCore, SeedableRng};
 
 fn nth_park_miller<R: RngCore + SeedableRng>(n: u64) {
@@ -16,13 +20,21 @@ fn criterion_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("from_elem");
     group.throughput(Throughput::Elements(size));
 
-    group.bench_with_input(BenchmarkId::new("NaiveParkMillerOld", size), &size, |b, &size| {
-        b.iter(|| nth_park_miller::<NaiveParkMillerOld>(size));
-    });
+    group.bench_with_input(
+        BenchmarkId::new("NaiveParkMillerOld", size),
+        &size,
+        |b, &size| {
+            b.iter(|| nth_park_miller::<NaiveParkMillerOld>(size));
+        },
+    );
 
-    group.bench_with_input(BenchmarkId::new("NaiveParkMiller", size), &size, |b, &size| {
-        b.iter(|| nth_park_miller::<NaiveParkMiller>(size));
-    });
+    group.bench_with_input(
+        BenchmarkId::new("NaiveParkMiller", size),
+        &size,
+        |b, &size| {
+            b.iter(|| nth_park_miller::<NaiveParkMiller>(size));
+        },
+    );
 
     group.bench_with_input(BenchmarkId::new("Randu", size), &size, |b, &size| {
         b.iter(|| nth_park_miller::<Randu>(size));
@@ -36,13 +48,21 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| nth_park_miller::<CrayRanf>(size));
     });
 
-    group.bench_with_input(BenchmarkId::new("ParkMillerEfficient", size), &size, |b, &size| {
-        b.iter(|| nth_park_miller::<ParkMillerEfficient>(size));
-    });
+    group.bench_with_input(
+        BenchmarkId::new("ParkMillerEfficient", size),
+        &size,
+        |b, &size| {
+            b.iter(|| nth_park_miller::<ParkMillerEfficient>(size));
+        },
+    );
 
-    group.bench_with_input(BenchmarkId::new("BoroshNiederreiter", size), &size, |b, &size| {
-        b.iter(|| nth_park_miller::<BoroshNiederreiter>(size));
-    });
+    group.bench_with_input(
+        BenchmarkId::new("BoroshNiederreiter", size),
+        &size,
+        |b, &size| {
+            b.iter(|| nth_park_miller::<BoroshNiederreiter>(size));
+        },
+    );
 
     group.bench_with_input(BenchmarkId::new("INMOS", size), &size, |b, &size| {
         b.iter(|| nth_park_miller::<INMOS>(size));

@@ -18,3 +18,6 @@ jobs:
 
       - name: test
         run: cargo test --verbose
+
+      - name: check formatting
+        run: cargo fmt --check
