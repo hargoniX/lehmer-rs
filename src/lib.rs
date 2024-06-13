@@ -1,3 +1,4 @@
+#![feature(portable_simd)]
 #[cfg(test)]
 #[macro_use]
 extern crate quickcheck;
