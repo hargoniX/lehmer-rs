@@ -1,14 +1,14 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use core::f64;
-use lehmer::core::Crawford;
-use rand::{Rng, RngCore};
+use lehmer::core::{Crawford, FastU32, NaiveU32};
+use rand::Rng;
 use rand_core::SeedableRng;
 
 const SEED: u64 = 333;
 const PI_5_DECIMALS: u32 = 314159;
 
-fn estimate_pi<R: Rng + RngCore + SeedableRng>() -> u32 {
+fn estimate_pi<R: Rng + SeedableRng>() -> u32 {
     fn is_precision_reached(count: u32, iterations: u32) -> bool {
         let estimate: f64 = (count as f64) * 4.0 / (iterations as f64);
         (estimate * (u32::pow(10, 5)) as f64).trunc() as u32 == PI_5_DECIMALS
@@ -38,6 +38,12 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_function(BenchmarkId::new("Crawford", param), |b| {
         b.iter(|| estimate_pi::<Crawford>());
+    });
+    group.bench_function(BenchmarkId::new("NaiveU32", param), |b| {
+        b.iter(|| estimate_pi::<NaiveU32>());
+    });
+    group.bench_function(BenchmarkId::new("FastU32", param), |b| {
+        b.iter(|| estimate_pi::<FastU32>());
     });
     group.finish();
 }
