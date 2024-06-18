@@ -12,6 +12,7 @@ license = "MIT"
 [dependencies]
 rand_core = "0.6.4"
 rand = "0.8.5"
+clap = { version = "4.5.7", features = ["derive"] }
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }
