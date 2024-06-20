@@ -27,3 +27,6 @@ harness = false
 
 [[bin]]
 name = "main"
+
+[[bin]]
+name = "breakit"
