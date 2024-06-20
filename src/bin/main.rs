@@ -1,7 +1,6 @@
-use lehmer::core::{Crawford, FastU32, NaiveU32};
-use lehmer::monte::{estimate_pi, estimate_pi_slow};
+use lehmer::core::FastU32;
+use lehmer::monte::estimate_pi;
 
 fn main() {
-    //println!("{}", estimate_pi_slow::<FastU32>());
     println!("{}", estimate_pi::<FastU32>());
 }

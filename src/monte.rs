@@ -9,7 +9,7 @@ use std::simd::Simd;
 const SEED: u64 = 333;
 const PRECISION: f64 = 0.000000001;
 
-pub fn estimate_pi<R: Rng + SeedableRng>() -> f64 {
+pub fn estimate_pi_simd<R: Rng + SeedableRng>() -> f64 {
     fn is_precision_reached(count: u32, iterations: u32) -> bool {
         let estimate: f64 = (count as f64) * 4.0 / (iterations as f64);
         f64::abs(estimate - PI) < PRECISION
@@ -25,8 +25,7 @@ pub fn estimate_pi<R: Rng + SeedableRng>() -> f64 {
     let splat = Simd::splat(1.0);
 
     while !is_precision_reached(count, iterations) {
-        // TODO: implement and use rand::distributions::Uniform? - more efficient when same range
-        Fill::try_fill(&mut x_buff, &mut rng).unwrap(); // TODO: other rand
+        Fill::try_fill(&mut x_buff, &mut rng).unwrap();
         Fill::try_fill(&mut y_buff, &mut rng).unwrap();
 
         let x = Simd::from(x_buff);
@@ -39,7 +38,7 @@ pub fn estimate_pi<R: Rng + SeedableRng>() -> f64 {
     (count as f64) * 4.0 / (iterations as f64)
 }
 
-pub fn estimate_pi_slow<R: Rng + SeedableRng>() -> f64 {
+pub fn estimate_pi<R: Rng + SeedableRng>() -> f64 {
     fn is_precision_reached(count: u32, iterations: u32) -> bool {
         let estimate: f64 = (count as f64) * 4.0 / (iterations as f64);
         f64::abs(estimate - PI) < PRECISION
@@ -50,7 +49,6 @@ pub fn estimate_pi_slow<R: Rng + SeedableRng>() -> f64 {
     let mut count = 0;
 
     while !is_precision_reached(count, iterations) {
-        // TODO: implement and use rand::distributions::Uniform? - more efficient when same range
         let x: f32 = rng.gen_range(0.0..1.0);
         let y: f32 = rng.gen_range(0.0..1.0);
         let p: f32 = x * x + y * y;
