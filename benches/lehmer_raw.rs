@@ -1,8 +1,10 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+
 use lehmer::core::{
     BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, NaiveParkMiller,
     NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
+
 use rand_core::{RngCore, SeedableRng};
 
 fn nth_park_miller<R: RngCore + SeedableRng>(n: u64) {
