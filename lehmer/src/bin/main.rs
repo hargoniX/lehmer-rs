@@ -26,7 +26,7 @@ struct Cli {
     /// Generate Testvector or do some manual benchmarking
     command: Action,
     /// Amount of multiples of min. bitstreamchunk length 2**20
-    iterations: u64,
+    iterations: Option<u64>,
     /// Seed for the RNG
     seed: Option<u64>,
 }
@@ -36,7 +36,10 @@ fn main() {
     let seed = args.seed.unwrap_or(SEED);
 
     match args.command {
-        Action::Generate => generate_all(args.iterations, seed),
+        Action::Generate => {
+            let iterations = args.iterations.unwrap_or(1);
+            generate_all(iterations, seed)
+        }
         Action::Bench => println!("{}", estimate_pi::<FastU32>()),
         //println!("{}", estimate_pi_simd::<FastU32>()),
     }
