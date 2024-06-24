@@ -30,3 +30,4 @@ Cargo.lock
 
 .DS_Store
 *.binstr
+*.o

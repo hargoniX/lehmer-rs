@@ -8,6 +8,7 @@ description = "An implementation of the Lehmer RNG"
 readme = "README.md"
 repository = "https://github.com/hargoniX/lehmer-rs"
 license = "MIT"
+crate-type = ["cdylib"]
 
 [dependencies]
 rand_core = "0.6.4"
