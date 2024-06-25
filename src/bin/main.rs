@@ -1,6 +1,7 @@
-use lehmer::core::FastU32;
-use lehmer::monte::estimate_pi;
+use lehmer::core::NaiveParkMillerOld;
+use lehmer::find_parameters::find_lehmer_parameters;
 
 fn main() {
-    println!("{}", estimate_pi::<FastU32>());
+    let mut rng = NaiveParkMillerOld::new(5);
+    find_lehmer_parameters(&mut rng);
 }

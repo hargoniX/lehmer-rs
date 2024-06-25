@@ -9,6 +9,11 @@ use std::simd::Simd;
 const SEED: u64 = 333;
 const PRECISION: f64 = 0.000000001;
 
+// note:
+// lehmer rng works well with this simple monte carlo example
+// "cristalline" stucture of generation generally problematic for monte carlo though
+// see https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25
+
 pub fn estimate_pi_simd<R: Rng + SeedableRng>() -> f64 {
     fn is_precision_reached(count: u32, iterations: u32) -> bool {
         let estimate: f64 = (count as f64) * 4.0 / (iterations as f64);
