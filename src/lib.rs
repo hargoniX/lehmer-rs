@@ -3,7 +3,8 @@
 #[macro_use]
 extern crate quickcheck;
 extern crate modinverse;
+extern crate statrs;
 
 pub mod core;
 pub mod find_parameters;
-pub mod monte;
+pub mod mc_pi;
