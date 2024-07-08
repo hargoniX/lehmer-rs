@@ -6,7 +6,9 @@ use statrs::function::gamma::gamma;
 use std::f64::consts::PI;
 use std::simd::cmp::SimdPartialOrd;
 use std::simd::num::SimdFloat;
+use std::simd::LaneCount;
 use std::simd::Simd;
+use std::simd::SupportedLaneCount;
 
 const SEED: u64 = 333;
 const PRECISION: f64 = 0.00001;
@@ -30,7 +32,7 @@ pub fn estimate_pi<R: Rng + SeedableRng>() -> f64 {
     let mut iterations = 0;
     let mut count = 0;
 
-    while !is_precision_reached(estimate(count, iterations)) {
+    while iterations % 64 != 0 || !is_precision_reached(estimate(count, iterations)) {
         let x: f32 = rng.gen_range(0.0..1.0);
         let y: f32 = rng.gen_range(0.0..1.0);
         let p: f32 = x * x + y * y;
@@ -64,12 +66,12 @@ pub fn estimate_pi_n<R: Rng + SeedableRng>(n: usize) -> f64 {
     let mut vec = vec![0.0; n];
     let rns = vec.as_mut_slice();
 
-    while !is_precision_reached(estimate(count, iterations, n)) {
+    while iterations % 64 != 0 || !is_precision_reached(estimate(count, iterations, n)) {
         for i in 0..n {
             rns[i] = rng.gen_range(0.0..1.0);
         }
 
-        let p: f32 = rns.iter().fold(0.0, |acc, rn| acc + rn * rn);
+        let p: f32 = rns.iter().map(|rn| rn * rn).sum();
 
         iterations += 1;
         if p < 1.0 {
@@ -112,7 +114,11 @@ pub fn estimate_pi_simd<R: Rng + SeedableRng>() -> f64 {
 }
 
 // for n <= 64
-pub fn estimate_pi_n_simd<R: Rng + SeedableRng>(n: usize) -> f64 {
+pub fn estimate_pi_n_simd<R, const N: usize>() -> f64
+where
+    R: Rng + SeedableRng,
+    LaneCount<N>: SupportedLaneCount,
+{
     fn is_precision_reached(estimate: f64) -> bool {
         f64::abs(estimate - PI) < PRECISION
     }
@@ -121,7 +127,7 @@ pub fn estimate_pi_n_simd<R: Rng + SeedableRng>(n: usize) -> f64 {
         // check whether generated point is outside of unit sphere using euclidian norm
         // (root canceled out)
         let nominator: f64 =
-            count as f64 * gamma(n as f64 / 2.0 + 1.0) * u64::pow(2, n as u32) as f64;
+            count as f64 * gamma(n as f64 / 2.0 + 1.0) * u128::pow(2, n as u32) as f64;
         let demoniator: f64 = iterations as f64;
         f64::powf(nominator / demoniator, 2.0 / n as f64)
     }
@@ -130,14 +136,13 @@ pub fn estimate_pi_n_simd<R: Rng + SeedableRng>(n: usize) -> f64 {
     let mut iterations = 0;
     let mut count = 0;
 
-    let mut rns: [f32; 64] = [0.0; 64];
+    let mut rns: [f32; N] = [0.0; N];
 
-    while !is_precision_reached(estimate(count, iterations, n)) {
-        Fill::try_fill(&mut rns[0..n], &mut rng).unwrap();
+    while iterations % 64 != 0 || !is_precision_reached(estimate(count, iterations, N)) {
+        Fill::try_fill(&mut rns[0..N], &mut rng).unwrap();
 
-        let x = Simd::from(rns);
-        let xp = x * x;
-        let p = xp.reduce_sum();
+        let xs = Simd::from(rns);
+        let p = (xs * xs).reduce_sum();
 
         iterations += 1;
         if p < 1.0 {
@@ -145,5 +150,5 @@ pub fn estimate_pi_n_simd<R: Rng + SeedableRng>(n: usize) -> f64 {
         }
     }
 
-    estimate(count, iterations, n)
+    estimate(count, iterations, N)
 }

@@ -20,34 +20,34 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     group.bench_function(BenchmarkId::new("Crawford simd", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<Crawford>(n));
+        b.iter(|| estimate_pi_n_simd::<Crawford, 2>());
     });
     group.bench_function(BenchmarkId::new("NaiveU32 simd", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<NaiveU32>(n));
+        b.iter(|| estimate_pi_n_simd::<NaiveU32, 2>());
     });
     group.bench_function(BenchmarkId::new("FastU32 simd", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<FastU32>(n));
+        b.iter(|| estimate_pi_n_simd::<FastU32, 2>());
     });
 
-    n = 16;
-    group.bench_function(BenchmarkId::new("Crawford 16", param), |b| {
+    n = 8;
+    group.bench_function(BenchmarkId::new("Crawford 8", param), |b| {
         b.iter(|| estimate_pi_n::<Crawford>(n));
     });
-    group.bench_function(BenchmarkId::new("NaiveU32 15", param), |b| {
+    group.bench_function(BenchmarkId::new("NaiveU32 8", param), |b| {
         b.iter(|| estimate_pi_n::<NaiveU32>(n));
     });
-    group.bench_function(BenchmarkId::new("FastU32 16", param), |b| {
+    group.bench_function(BenchmarkId::new("FastU32 8", param), |b| {
         b.iter(|| estimate_pi_n::<FastU32>(n));
     });
 
-    group.bench_function(BenchmarkId::new("Crawford simd 16", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<Crawford>(n));
+    group.bench_function(BenchmarkId::new("Crawford simd 8", param), |b| {
+        b.iter(|| estimate_pi_n_simd::<Crawford, 8>());
     });
-    group.bench_function(BenchmarkId::new("NaiveU32 simd 16", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<NaiveU32>(n));
+    group.bench_function(BenchmarkId::new("NaiveU32 simd 8", param), |b| {
+        b.iter(|| estimate_pi_n_simd::<NaiveU32, 8>());
     });
-    group.bench_function(BenchmarkId::new("FastU32 simd 16", param), |b| {
-        b.iter(|| estimate_pi_n_simd::<FastU32>(n));
+    group.bench_function(BenchmarkId::new("FastU32 simd 8", param), |b| {
+        b.iter(|| estimate_pi_n_simd::<FastU32, 8>());
     });
     group.finish();
 }
