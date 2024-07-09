@@ -23,5 +23,5 @@ GENERATORS=(
 )
 
 for generator in ${GENERATORS[@]}; do
-    ./sts -v 1 -s -i ${ITERATIONS} -I 1 -w ${generator}_${ITERATIONS} -F a testdata/${generator}_${ITERATIONS}.binstr
+    ./sts -v 1 -s -i ${ITERATIONS} -I 1 -w nist/${generator}_${ITERATIONS} -F a testdata/${generator}_${ITERATIONS}.binstr
 done
