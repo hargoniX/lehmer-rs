@@ -1,8 +1,4 @@
 #!/bin/bash
-# Expects:
-# - a built `sts` binary from https://github.com/arcetri/sts
-# - generated testvector files for the desired iteration count
-#   (e.g. cargo run $ITERATIONS generate)
 set -xe
 
 ITERATIONS=${1:-1}
