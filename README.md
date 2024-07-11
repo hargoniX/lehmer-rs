@@ -44,14 +44,6 @@ Less than 31 bits results in some automatic failures though.
 6. sstring:
   - PeriodsInStrings: sth about the distribution of the correlations in bit strings of a certain length
 
-### Calling the C Wrapper Program
-```sh
-cargo build
-gcc -std=c99 -Wall -o lehmer_crush.o lehmer_crush.c -Iinclude -Llib -ltestu01 ../target/debug/liblehmer.so
-./lehmer_crush.o -h
-# `-[s|m|b]` for small, normal and big crush respectively.
-```
-
 ## NIST
 A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryptographic Applications
 
