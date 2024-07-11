@@ -8,14 +8,15 @@ GENERATORS=(
     "CrayRanf"
     "FastU32"
     "Fishman18"
+    "INMOS"
     "LEcuyer"
+    "Lemire"
     "NaiveParkMiller"
     "NaiveParkMillerOld"
     "NaiveU32"
     "ParkMillerEfficient"
     "Randu"
     "Waterman"
-    "INMOS"
 )
 
 for generator in ${GENERATORS[@]}; do

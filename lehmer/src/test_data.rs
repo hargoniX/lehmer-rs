@@ -4,7 +4,7 @@ use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 
 use crate::core::{
-    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, NaiveParkMiller,
+    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lemire, NaiveParkMiller,
     NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
@@ -39,6 +39,7 @@ pub fn generate_all(iterations: u64, seed: u64) {
     generate::<Randu>(iterations, seed, format!("Randu_{}.binstr", iterations));
     generate::<Waterman>(iterations, seed, format!("Waterman_{}.binstr", iterations));
     generate::<INMOS>(iterations, seed, format!("INMOS_{}.binstr", iterations));
+    generate::<Lemire>(iterations, seed, format!("Lemire_{}.binstr", iterations));
 }
 
 pub fn generate<R: RngCore + SeedableRng>(iterations: u64, seed: u64, filepath: String) {

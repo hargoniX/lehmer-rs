@@ -6,7 +6,7 @@ use rand_core::{
 macro_rules! lehmer_impl {
     ($name:ident, $state:ty, $operating:ty) => {
         pub struct $name<const A: $state, const M: $state> {
-            state: $state,
+            pub(crate) state: $state,
         }
 
         impl<const A: $state, const M: $state> $name<A, M> {
@@ -172,8 +172,38 @@ macro_rules! lehmer64_params {
     };
 }
 
+macro_rules! lehmer128_traits {
+    ($name:ident) => {
+        impl RngCore for $name {
+            fn next_u32(&mut self) -> u32 {
+                self.next() as u32
+            }
+
+            fn next_u64(&mut self) -> u64 {
+                self.next()
+            }
+
+            fn fill_bytes(&mut self, dest: &mut [u8]) {
+                fill_bytes_via_next(self, dest);
+            }
+
+            fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
+                Ok(self.fill_bytes(dest))
+            }
+        }
+
+        impl SeedableRng for $name {
+            type Seed = [u8; 16];
+
+            fn from_seed(seed: Self::Seed) -> Self {
+                $name::new(u128::from_le_bytes(seed))
+            }
+        }
+    };
+}
+
 pub struct ParkMillerEfficient {
-    state: u32,
+    pub(crate) state: u32,
 }
 
 impl ParkMillerEfficient {
@@ -191,7 +221,7 @@ impl ParkMillerEfficient {
 
 // TODO: Wikipedia recommends this set, check where it comes from to give it a proper name.
 pub struct FastU32 {
-    state: u32,
+    pub(crate) state: u32,
 }
 
 impl FastU32 {
@@ -209,6 +239,21 @@ impl FastU32 {
     }
 }
 
+pub struct Lemire {
+    pub(crate) state: u128,
+}
+
+impl Lemire {
+    pub fn new(state: u128) -> Self {
+        Self { state }
+    }
+
+    pub fn next(&mut self) -> u64 {
+        self.state = self.state.wrapping_mul(15_750_249_268_501_108_917);
+        (self.state >> 64) as u64
+    }
+}
+
 lehmer32_params!(NaiveParkMillerOld, u32::pow(7, 5), u32::pow(2, 31) - 1);
 // The same as Fishman 20: see Knuths Seminumerical Algorithms, 3rd Ed., pages 106-108
 lehmer32_params!(NaiveParkMiller, 48_271, u32::pow(2, 31) - 1);
@@ -223,6 +268,7 @@ lehmer64_params!(Waterman, 1_566_083_941, u64::pow(2, 32));
 lehmer32_traits!(ParkMillerEfficient);
 lehmer32_params!(NaiveU32, 279_470_273, 0xfffffffb);
 lehmer32_traits!(FastU32);
+lehmer128_traits!(Lemire);
 
 #[cfg(test)]
 mod tests {
