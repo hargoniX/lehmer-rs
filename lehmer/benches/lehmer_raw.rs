@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 
 use lehmer::core::{
-    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, NaiveParkMiller,
+    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lemire, NaiveParkMiller,
     NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
@@ -86,6 +86,10 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     group.bench_with_input(BenchmarkId::new("FastU32", size), &size, |b, &size| {
         b.iter(|| nth_park_miller::<FastU32>(size));
+    });
+
+    group.bench_with_input(BenchmarkId::new("Lemire", size), &size, |b, &size| {
+        b.iter(|| nth_park_miller::<Lemire>(size));
     });
 
     group.finish();
