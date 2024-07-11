@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: install testu01
+        run: |
+          sudo apt update -y
+          sudo apt install libtestu01-0-dev -y
+
       - name: build
         run: cargo build --verbose
 
