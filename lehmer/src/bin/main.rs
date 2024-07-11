@@ -7,6 +7,7 @@ use lehmer::core::{
     NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
+use lehmer::find_parameters::find_lehmer_parameters;
 #[allow(unused_imports)]
 use lehmer::monte::{estimate_pi, estimate_pi_simd};
 use lehmer::test_data::generate_all;
@@ -22,6 +23,7 @@ enum Action {
     SmallCrush,
     Crush,
     BigCrush,
+    Break,
 }
 
 /// Either generate some testdata or do some manual monte carlo
@@ -50,5 +52,10 @@ fn main() {
         Action::SmallCrush => crush_it(lehmer_next, bbattery_SmallCrush),
         Action::Crush => crush_it(lehmer_next, bbattery_Crush),
         Action::BigCrush => crush_it(lehmer_next, bbattery_BigCrush),
+        Action::Break => {
+            let mut rng = NaiveParkMillerOld::new(5);
+            let (m, a) = find_lehmer_parameters(&mut rng);
+            println!("Found m: {m} and a: {a}");
+        }
     }
 }
