@@ -2,6 +2,7 @@ use crate::core::FastU32;
 use plotters::prelude::*;
 use rand::Fill;
 use rand::Rng;
+use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
 use rand_pcg::Pcg32;
 use rayon::iter::IntoParallelRefIterator;
@@ -16,12 +17,13 @@ use std::simd::Simd;
 use std::simd::SupportedLaneCount;
 
 const PRECISION: f64 = 0.00001;
+const MAX_ITERATIONS: u64 = 2_500_000_000;
 
 // note:
-// lehmer rng works well with this simple monte carlo example
-// "cristalline" stucture of generation generally problematic for monte carlo though
+// lehmer rng works well with simple monte carlo examples
+// but "cristalline" stucture of generation generally problematic for monte carlo though
 // see https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25
-// -> e.g. FastU32 fails to converge on 4 decimal precision for 10 dimension 10 with seed 43
+// -> e.g. FastU32 fails to converge on 4 decimal precision for dimension 10 with seed 43
 
 fn is_precision_reached(estimate: f64) -> bool {
     f64::abs(estimate - PI) < PRECISION
@@ -64,7 +66,7 @@ pub fn estimate_pi_n<R: Rng + SeedableRng>(n: usize, seed: u64) -> u64 {
     let mut count: u64 = 0;
 
     let mut rns = vec![0.0; n];
-    while !is_precision_reached(estimate_n(count, iterations, n)) {
+    while !is_precision_reached(estimate_n(count, iterations, n)) && iterations < MAX_ITERATIONS {
         for i in 0..n {
             rns[i] = rng.gen_range(0.0..1.0);
         }
@@ -74,6 +76,9 @@ pub fn estimate_pi_n<R: Rng + SeedableRng>(n: usize, seed: u64) -> u64 {
         if p < 1.0 {
             count += 1;
         }
+    }
+    if iterations == MAX_ITERATIONS {
+        println!("Seed {:?} stuck", seed);
     }
     iterations
 }
@@ -114,7 +119,7 @@ where
 
     let mut rns: [f32; N] = [0.0; N];
 
-    while !is_precision_reached(estimate_n(count, iterations, N)) {
+    while !is_precision_reached(estimate_n(count, iterations, N)) && iterations < MAX_ITERATIONS {
         Fill::try_fill(&mut rns[0..N], &mut rng).unwrap();
 
         let xs = Simd::from(rns);
@@ -129,8 +134,8 @@ where
     iterations
 }
 
-const ITERATIONS: usize = 15;
-const DIMENSIONS: usize = 14;
+const ITERATIONS: usize = 50;
+const DIMENSIONS: usize = 16;
 const STARTING_DIMENSION: usize = 2;
 
 pub fn check_difference_print() {
@@ -196,6 +201,8 @@ pub fn check_difference() {
         [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
     let mut result_pcg: [Iterations; DIMENSIONS - STARTING_DIMENSION + 1] =
         [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
+    let mut result_cha: [Iterations; DIMENSIONS - STARTING_DIMENSION + 1] =
+        [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
 
     for dimension in STARTING_DIMENSION..=DIMENSIONS {
         println!("dimension: {:?}", dimension);
@@ -208,13 +215,20 @@ pub fn check_difference() {
         println!("pcg");
         result_pcg[dimension - STARTING_DIMENSION] =
             Iterations::new(mean_iterations::<Pcg32>(&buf, dimension) as u32, dimension);
+
+        println!("chacha20");
+        result_cha[dimension - STARTING_DIMENSION] = Iterations::new(
+            mean_iterations::<ChaCha20Rng>(&buf, dimension) as u32,
+            dimension,
+        );
     }
-    plot_precision(&result_lehmer, &result_pcg).unwrap();
+    plot_precision(&result_lehmer, &result_pcg, &result_cha).unwrap();
 }
 
 fn plot_precision(
     lehmer: &[Iterations],
     pcg32: &[Iterations],
+    chacha20: &[Iterations],
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file = "./comparison.png";
     let root = BitMapBackend::new(file, (1200, 800)).into_drawing_area();
@@ -267,6 +281,21 @@ fn plot_precision(
             color.stroke_width(2),
         ))?
         .label("PCG32")
+        .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled()));
+
+    let color = Palette99::pick(2).mix(0.9);
+    chart
+        .draw_series(LineSeries::new(
+            chacha20.iter().map(
+                |&Iterations {
+                     mean_iterations,
+                     dimension,
+                     ..
+                 }| (dimension as u32, mean_iterations as u32),
+            ),
+            color.stroke_width(2),
+        ))?
+        .label("ChaCha20")
         .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled()));
 
     chart.configure_series_labels().border_style(BLACK).draw()?;
