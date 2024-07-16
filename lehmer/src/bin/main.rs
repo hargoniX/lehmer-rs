@@ -9,17 +9,21 @@ use lehmer::core::{
 
 use lehmer::find_parameters::find_lehmer_parameters;
 #[allow(unused_imports)]
-use lehmer::monte::{estimate_pi, estimate_pi_simd};
+use lehmer::monte_carlo_pi::{check_difference, estimate_fixed_iterations};
 use lehmer::test_data::generate_all;
 use testu01_sys::{bbattery_BigCrush, bbattery_Crush, bbattery_SmallCrush};
 
 // Can be overwritten with the CLI Flag
 const SEED: u64 = 333;
+const DIMENSION: usize = 2;
+const PATH: &str = "./comparison.png";
+const NUMBER_SEEDS: u32 = 10;
 
 #[derive(Subcommand)]
 enum Action {
     Generate,
-    Bench,
+    Pi,
+    CompareRngPi,
     SmallCrush,
     Crush,
     BigCrush,
@@ -36,19 +40,34 @@ struct Cli {
     iterations: Option<u64>,
     /// Seed for the RNG
     seed: Option<u64>,
+    /// Dimension for monte carlo pi estimation
+    dimension: Option<usize>,
+    /// Path for comparison graph
+    path: Option<String>,
+    /// Number of different seeds to for the comparison
+    number_seeds: Option<u32>,
 }
 
 fn main() {
     let args = Cli::parse();
     let seed = args.seed.unwrap_or(SEED);
+    let path = args.path.unwrap_or(PATH.to_string());
 
     match args.command {
         Action::Generate => {
             let iterations = args.iterations.unwrap_or(1);
             generate_all(iterations, seed)
         }
-        Action::Bench => println!("{}", estimate_pi::<FastU32>()),
-        //println!("{}", estimate_pi_simd::<FastU32>()),
+        Action::Pi => {
+            let iterations = args.iterations.unwrap_or(1) as usize;
+            let dimension = args.dimension.unwrap_or(DIMENSION);
+            estimate_fixed_iterations::<FastU32>(&path, dimension, seed, iterations).unwrap();
+            println!("placeholder");
+        }
+        Action::CompareRngPi => {
+            let number_seeds = args.number_seeds.unwrap_or(NUMBER_SEEDS);
+            println!("{:?}", check_difference(&path, number_seeds));
+        }
         Action::SmallCrush => crush_it(lehmer_next, bbattery_SmallCrush),
         Action::Crush => crush_it(lehmer_next, bbattery_Crush),
         Action::BigCrush => crush_it(lehmer_next, bbattery_BigCrush),
