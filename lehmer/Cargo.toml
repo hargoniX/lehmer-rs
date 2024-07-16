@@ -16,6 +16,11 @@ clap = { version = "4.5.7", features = ["derive"] }
 libc = "0.2.0"
 testu01-sys = { path = "../testu01-sys" }
 modinverse = "0.1.1"
+statrs = "0.17.1"
+rand_pcg = "0.3.1"
+rand_chacha = "0.3.1"
+rayon = "1.10.0"
+plotters = "0.3.6"
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }
