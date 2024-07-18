@@ -1,4 +1,8 @@
-use crate::core::{CrayRanf, FastU32, Lemire};
+#[allow(unused_imports)]
+use crate::core::{
+    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lehmer32, Lemire,
+    NaiveParkMiller, NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
+};
 use rand_core::RngCore;
 use std::ffi::{c_char, CString};
 use testu01_sys::{unif01_CreateExternGenBits, unif01_DeleteExternGenBits, unif01_Gen};
