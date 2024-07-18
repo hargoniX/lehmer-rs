@@ -1,3 +1,5 @@
+use std::ops::RangeBounds;
+
 use clap::{Parser, Subcommand};
 
 use lehmer::c_ffi::{crush_it, lehmer_next};
@@ -7,7 +9,8 @@ use lehmer::core::{
     NaiveParkMiller, NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
-use lehmer::find_parameters::find_lehmer_parameters;
+use lehmer::find_parameters::find_lehmer_parameters_u32;
+use lehmer::find_parameters::find_lehmer_parameters_u64;
 #[allow(unused_imports)]
 use lehmer::monte_carlo_pi::{check_difference, estimate_fixed_iterations};
 use lehmer::test_data::generate_all;
@@ -62,7 +65,6 @@ fn main() {
             let iterations = args.iterations.unwrap_or(1) as usize;
             let dimension = args.dimension.unwrap_or(DIMENSION);
             estimate_fixed_iterations::<FastU32>(&path, dimension, seed, iterations).unwrap();
-            println!("placeholder");
         }
         Action::CompareRngPi => {
             let number_seeds = args.number_seeds.unwrap_or(NUMBER_SEEDS);
@@ -72,8 +74,8 @@ fn main() {
         Action::Crush => crush_it(lehmer_next, bbattery_Crush),
         Action::BigCrush => crush_it(lehmer_next, bbattery_BigCrush),
         Action::Break => {
-            let mut rng = NaiveParkMillerOld::new(5);
-            let (m, a) = find_lehmer_parameters(&mut rng);
+            let mut rng = Crawford::new(5);
+            let (m, a) = find_lehmer_parameters_u32(&mut rng);
             println!("Found m: {m} and a: {a}");
         }
     }
