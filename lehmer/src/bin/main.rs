@@ -3,8 +3,8 @@ use clap::{Parser, Subcommand};
 use lehmer::c_ffi::{crush_it, lehmer_next};
 #[allow(unused_imports)]
 use lehmer::core::{
-    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lehmer32, NaiveParkMiller,
-    NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
+    BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lehmer32, Lemire,
+    NaiveParkMiller, NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
 use lehmer::find_parameters::find_lehmer_parameters;
