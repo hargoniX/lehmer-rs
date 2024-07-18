@@ -1,0 +1,8 @@
+========= Summary results of BigCrush =========
+
+ Version:          TestU01 1.2.3
+ Generator:        Lemire
+ Number of statistics:  160
+ Total CPU time:   01:47:51.30
+
+ All tests were passed
