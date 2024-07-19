@@ -18,9 +18,10 @@ use testu01_sys::{bbattery_BigCrush, bbattery_Crush, bbattery_SmallCrush};
 
 // Can be overwritten with the CLI Flag
 const SEED: u64 = 333;
-const DIMENSION: usize = 2;
-const PATH: &str = "./comparison.png";
-const NUMBER_SEEDS: u32 = 10;
+const DIMENSION: usize = 5;
+const DIMENSIONS: usize = 16;
+const NUMBER_SEEDS: u32 = 50;
+const PATH: &str = "./figure.png";
 
 #[derive(Subcommand)]
 enum Action {
@@ -62,13 +63,14 @@ fn main() {
             generate_all(iterations, seed)
         }
         Action::Pi => {
-            let iterations = args.iterations.unwrap_or(1) as usize;
+            let iterations = args.iterations.unwrap_or(300_000) as usize;
             let dimension = args.dimension.unwrap_or(DIMENSION);
             estimate_fixed_iterations::<FastU32>(&path, dimension, seed, iterations).unwrap();
         }
         Action::CompareRngPi => {
             let number_seeds = args.number_seeds.unwrap_or(NUMBER_SEEDS);
-            println!("{:?}", check_difference(&path, number_seeds));
+            let dimensions = args.dimension.unwrap_or(DIMENSIONS);
+            check_difference(&path, number_seeds, dimensions);
         }
         Action::SmallCrush => crush_it(lehmer_next, bbattery_SmallCrush),
         Action::Crush => crush_it(lehmer_next, bbattery_Crush),

@@ -19,12 +19,6 @@ use std::simd::SupportedLaneCount;
 const PRECISION: f64 = 0.00001;
 const MAX_ITERATIONS: u64 = 2_500_000_000;
 
-// note:
-// lehmer rng works well with simple monte carlo examples
-// but "cristalline" stucture of generation generally problematic for monte carlo though
-// see https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25
-// -> e.g. FastU32 fails to converge on 4 decimal precision for dimension 10 with seed 43
-
 fn is_precision_reached(estimate: f64) -> bool {
     f64::abs(estimate - PI) < PRECISION
 }
@@ -183,7 +177,7 @@ impl Iterations {
     }
 }
 
-pub fn check_difference(path: &str, different_seeds: u32) {
+pub fn check_difference(path: &str, different_seeds: u32, dimensions: usize) {
     fn mean_iterations<R>(buf: &[u32], different_seeds: u32, dimension: usize) -> f64
     where
         R: Rng + SeedableRng,
@@ -195,64 +189,112 @@ pub fn check_difference(path: &str, different_seeds: u32) {
             / different_seeds as f64
     }
 
-    let buf: Vec<u32> = vec![0, different_seeds];
+    let buf: Vec<u32> = vec![0; different_seeds as usize];
 
-    let mut result_lehmer: [Iterations; DIMENSIONS - STARTING_DIMENSION + 1] =
-        [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
-    let mut result_pcg: [Iterations; DIMENSIONS - STARTING_DIMENSION + 1] =
-        [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
-    let mut result_cha: [Iterations; DIMENSIONS - STARTING_DIMENSION + 1] =
-        [Iterations::new(0, 0); DIMENSIONS - STARTING_DIMENSION + 1];
+    let mut result_lehmer = Vec::new();
+    let mut result_pcg = Vec::new();
+    let mut result_cha = Vec::new();
 
-    for dimension in STARTING_DIMENSION..=DIMENSIONS {
+    for dimension in STARTING_DIMENSION..=dimensions {
         println!("dimension: {:?}", dimension);
         println!("lehmer");
-        result_lehmer[dimension - STARTING_DIMENSION] = Iterations::new(
+        result_lehmer.push(Iterations::new(
             mean_iterations::<FastU32>(&buf, different_seeds, dimension) as u32,
             dimension,
-        );
+        ));
 
         println!("pcg");
-        result_pcg[dimension - STARTING_DIMENSION] = Iterations::new(
+        result_pcg.push(Iterations::new(
             mean_iterations::<Pcg32>(&buf, different_seeds, dimension) as u32,
             dimension,
-        );
+        ));
 
         println!("chacha20");
-        result_cha[dimension - STARTING_DIMENSION] = Iterations::new(
+        result_cha.push(Iterations::new(
             mean_iterations::<ChaCha20Rng>(&buf, different_seeds, dimension) as u32,
             dimension,
-        );
+        ));
     }
-    plot_precision(path, &result_lehmer, &result_pcg, &result_cha).unwrap();
+    plot_mean_iterations(
+        path,
+        &result_lehmer,
+        &result_pcg,
+        &result_cha,
+        different_seeds,
+        dimensions,
+    )
+    .unwrap();
 }
 
-fn plot_precision(
+#[derive(Copy, Clone, Debug)]
+struct Estimate {
+    estimate: f64,
+    iteration: usize,
+}
+
+pub fn estimate_fixed_iterations<R: Rng + SeedableRng>(
+    path: &str,
+    n: usize,
+    seed: u64,
+    iterations: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut rng = R::seed_from_u64(seed);
+    let mut counts: Vec<(u64, usize)> = Vec::new();
+
+    let mut current_count = 0;
+    for i in 0..iterations {
+        let mut rns = Vec::new();
+        for _ in 0..n {
+            rns.push(rng.gen_range(0.0..1.0));
+        }
+        let p: f32 = rns.iter().map(|rn| rn * rn).sum();
+        if p < 1.0 {
+            current_count += 1;
+        }
+        counts.push((current_count, i));
+    }
+
+    let estimates: Vec<Estimate> = counts
+        .par_iter()
+        .map(|(count, no_iter)| Estimate {
+            estimate: estimate_n(*count, *no_iter as u64, n),
+            iteration: *no_iter,
+        })
+        .collect();
+
+    plot_fixed_iterations(path, &estimates, n, iterations)
+}
+
+fn plot_mean_iterations(
     path: &str,
     lehmer: &[Iterations],
     pcg32: &[Iterations],
     chacha20: &[Iterations],
+    different_seeds: u32,
+    dimensions: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let root = BitMapBackend::new(path, (1200, 800)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let mut chart = ChartBuilder::on(&root)
         .caption(
-            "Mean Iterations for Fixed Precision",
+            "Mean Iterations for Dimension for Fixed Precision",
             ("sans-serif", (5).percent_height()),
         )
         .set_label_area_size(LabelAreaPosition::Left, (8).percent())
         .set_label_area_size(LabelAreaPosition::Bottom, (4).percent())
         .margin((1).percent())
         .build_cartesian_2d(
-            (2u32..(DIMENSIONS as u32 + 1)).with_key_points((2..=(DIMENSIONS as u32)).collect()),
-            (100u32..130_000_000u32).log_scale(),
+            (2u32..(dimensions as u32 + 1)).with_key_points((2..=(dimensions as u32)).collect()),
+            (10_000u32..130_000_000u32).log_scale(),
         )?;
 
     chart
         .configure_mesh()
         .x_desc("Dimension")
-        .y_desc("Mean Iterations")
+        .y_desc(format!(
+            "Mean Iterations for {different_seeds} Different Seeds"
+        ))
         .draw()?;
 
     let color = Palette99::pick(0).mix(0.9);
@@ -309,48 +351,18 @@ fn plot_precision(
     Ok(())
 }
 
-#[derive(Copy, Clone, Debug)]
-struct Estimate {
-    estimate: f64,
-    iteration: usize,
-}
-
-pub fn estimate_fixed_iterations<R: Rng + SeedableRng>(
+fn plot_fixed_iterations(
     path: &str,
+    estimates: &[Estimate],
     n: usize,
-    seed: u64,
     iterations: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut rng = R::seed_from_u64(seed);
-    let mut counts: Vec<(u64, usize)> = Vec::new();
-
-    let mut current_count = 0;
-    for i in 0..iterations {
-        let mut rns = Vec::new();
-        for _ in 0..n {
-            rns.push(rng.gen_range(0.0..1.0));
-        }
-        let p: f32 = rns.iter().map(|rn| rn * rn).sum();
-        if p < 1.0 {
-            current_count += 1;
-        }
-        counts.push((current_count, i));
-    }
-
-    let estimates: Vec<Estimate> = counts
-        .par_iter()
-        .map(|(count, no_iter)| Estimate {
-            estimate: estimate_n(*count, *no_iter as u64, n),
-            iteration: *no_iter,
-        })
-        .collect();
-
     let root = BitMapBackend::new(path, (1200, 800)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let mut chart = ChartBuilder::on(&root)
         .caption(
-            "Estimate Time Series for Fixed Iterations",
+            format!("Estimate Time Series for Fixed Iterations for Precision {PRECISION} and Dimension {n}"),
             ("sans-serif", (5).percent_height()),
         )
         .set_label_area_size(LabelAreaPosition::Left, (8).percent())
@@ -358,13 +370,13 @@ pub fn estimate_fixed_iterations<R: Rng + SeedableRng>(
         .margin((1).percent())
         .build_cartesian_2d(
             0u32..(iterations as u32),
-            0u32..((4 as f64 / PRECISION) as u32),
+            280_000u32..((3.4 as f64 / PRECISION) as u32),
         )?;
 
     chart
         .configure_mesh()
-        .x_desc("Iterations")
-        .y_desc("Estimates * 10,000")
+        .x_desc("Iteration")
+        .y_desc("Estimate / Precision")
         .draw()?;
 
     let color = Palette99::pick(0).mix(0.9);
@@ -377,9 +389,18 @@ pub fn estimate_fixed_iterations<R: Rng + SeedableRng>(
                      ..
                  }| (iteration as u32, (estimate / PRECISION) as u32),
             ),
-            color.stroke_width(2),
+            color.stroke_width(1),
         ))?
-        .label("Lehmer")
+        .label("Estimate")
+        .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled()));
+
+    let color = Palette99::pick(1).mix(0.9);
+    chart
+        .draw_series(LineSeries::new(
+            (0..iterations).map(|i| (i as u32, (PI / PRECISION) as u32)),
+            color.stroke_width(1),
+        ))?
+        .label("Pi")
         .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled()));
 
     chart.configure_series_labels().border_style(BLACK).draw()?;
