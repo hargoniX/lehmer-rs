@@ -20,7 +20,7 @@ Depending on the generator:
 - MediumCrush takes around 20-40 minutes
 - BigCrush takes a couple of hours
 
-Also, the current approach doesnt natively work with 64 bit generators since we initialize the generator by the last number.
+Also, the current approach doesn't natively work with 64 bit generators since we initialize the generator by the last number.
 Remember that one can mark a generator to generate less bits.
 Less than 31 bits results in some automatic failures though.
 
@@ -33,7 +33,7 @@ Less than 31 bits results in some automatic failures though.
   - ClosePairs: distance between the closest points
 3. sknuth:
   - CouponCollector: generates a random sequence of integers and counts how long til all got generated
-  - Gap: take an interval and look how many sequences of successive values dont fall into that interval at all
+  - Gap: take an interval and look how many sequences of successive values don't fall into that interval at all
   - Permutation: n non-overlapping vectors of t successive values from the generator - then ordering them and counting the permutations
   - CollisionPermut: how many permutations map to the same value
   - MaxOft: n groups of t values and computes the max for each group
@@ -53,4 +53,29 @@ Requirements to check every available generator via `sts.bash`:
   (e.g. `cargo run $ITERATIONS generate`)
 
 For the summary of the results, see the directory `nist/`.
-In general LCGs are not cryptographically secure and that some configurations pass the testsuite doesnt mean that we have next bit unpredictability in praxis.
+In general LCGs are not cryptographically secure and that some configurations pass the testsuite doesnt mean that we have next bit unpredictability in practice.
+
+## Monte Carlo Pi
+
+Monte Carlo Approximation for Pi in n Dimensions
+
+![Fixed Iterations](./assets/MC-fixed-precion.png "time series of estimates for fixed iterations")
+
+Per <a href="https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25">Marsaglia (1968)</a> Lehmer RNGs can work well with simple Monte Carlo examples. The "cristalline" structure (hyperplanes when n+1 random numbers viewed as points in n-dim space) can be problematic though. So we test whether this applies to n-dimensional Monte Carlo estimation of Pi. FastU32 Lehmer RNG doesn't converge for dimension 10 and seed 43 even after 2.500.000.000 iterations.
+
+![Non Convergence](./assets/MC-non-converging.png "not converging towards pi after 2.500.000.000 iterations")
+
+Next a comparison of different RNGs:
+![Dimensions](./assets/MC-dimension-comparison.png "mean iterations per dimension")
+Results of estimating Pi (fixed precision) for dimensions 2-16. The number of iterations needed are averaged over 50 different seeds. The plot shows a Lehmer RNG (FastU32), a LCG (PCG32) and a cryptographically secure RNG (ChaCha20). Also, max iterations of 2.500.000.000 insures termination for failed convergence (so that we can have a nice plot).
+Generally for n-dimensional Monte Carlo estimation of Pi, <a href="10.13140/RG.2.2.16276.17286">Ghosh and Chakraborty (2022)</a> hypothesise that more dimensions are proportional to the precision per iterations. However, after a point the results worsen. This might be due to the Curse of Dimensionality. This matches for the cryptographically secure ChaCha20 RNG. FastU32 and PCG32 are more inconsistent.
+
+## Find Parameters
+
+The "cristalline" structure (<a href="https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25">Marsaglia (1968)</a>) also helps in finding parameters of an LCG (therefor also of a Lehmer RNG).
+One can exploit that if n-tuples (z_i, ..., z_i+n) are viewed as points in unit cube of n dimensions, all points lie in relatively small numbers of hyperplanes. <a href="https://srmore.io/posts/breaking-linear-congruential-generator/
+">With the help of</a> some linear algebra it is possible to determine the modulus and the multiplicator of a Lehmer RNG, provided that the modulus is prime (not the case for all Lehmers in this project).
+
+Other algorithms (not implemented) that exploit predictableness of LCGs (again therfor Lehmer RNGs):
+https://www.sciencedirect.com/science/article/pii/019667749290054G
+http://zaic101.ru/files/728/using_linear_congruential_generators_for_cryptographic_purposes.pdf
