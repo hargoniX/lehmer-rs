@@ -1,9 +1,10 @@
 ========= Summary results of SmallCrush =========
 
  Version:          TestU01 1.2.3
- Generator:        FastU32
+ Generator:        Fishman18-reversed
+unif01_CreateTruncGen with b = 31  bits
  Number of statistics:  15
- Total CPU time:   00:00:07.63
+ Total CPU time:   00:00:05.28
  The following tests gave p-values outside [0.001, 0.9990]:
  (eps  means a value < 1.0e-300):
  (eps1 means a value < 1.0e-15):
