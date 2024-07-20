@@ -81,7 +81,7 @@ impl<const A: u64, const M: u64> SeedableRng for Lehmer64<A, M> {
 macro_rules! lehmer_params {
     ($name:ident, $lehmer_name:ident, $A:expr, $M:expr, $state:ty) => {
         pub struct $name {
-            rng: $lehmer_name<{ $A }, { $M }>,
+            pub(crate) rng: $lehmer_name<{ $A }, { $M }>,
         }
 
         impl $name {
