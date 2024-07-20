@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use lehmer::c_ffi::{crush_it, lehmer_next};
+use lehmer::c_ffi::crush_it;
 #[allow(unused_imports)]
 use lehmer::core::{
     BoroshNiederreiter, Crawford, CrayRanf, FastU32, Fishman18, LEcuyer, Lehmer32, Lemire,
@@ -77,9 +77,9 @@ fn main() {
             let dimensions = args.dimension.unwrap_or(DIMENSIONS);
             check_difference(&path, number_seeds, dimensions);
         }
-        Action::SmallCrush => crush_it(lehmer_next, bbattery_SmallCrush),
-        Action::Crush => crush_it(lehmer_next, bbattery_Crush),
-        Action::BigCrush => crush_it(lehmer_next, bbattery_BigCrush),
+        Action::SmallCrush => crush_it(bbattery_SmallCrush),
+        Action::Crush => crush_it(bbattery_Crush),
+        Action::BigCrush => crush_it(bbattery_BigCrush),
         Action::Break => {
             let mut rng = Crawford::new(5);
             let (m, a) = find_lehmer_parameters_u32(&mut rng);

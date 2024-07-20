@@ -28,29 +28,27 @@ Depending on the generator:
 - MediumCrush takes around 20-40 minutes
 - BigCrush takes a couple of hours
 
-Also, the current approach doesn't natively work with 64 bit generators since we initialize the generator by the last number.
-Remember that one can mark a generator to generate less bits.
-Less than 31 bits results in some automatic failures though.
+Since the API design of testu01 is quite restrictive, you have to edit the sourcecode for different permutations.
+Notably reversing the bit order of the RNG output might be interesting as well as truncating the expected output of the generator for testu01.
+Note: truncating results in the least significant bits being cut off, not the other way around, so it seems to be only useful in combination with bit reversal.
 
 #### Interpreting the results
-1. smarsa:
-  - SerialOver: overlapping t-tuple test
-  - CollisionOver: overlapping collision test
-  - BirthdaySpacings
-2. snpair:
-  - ClosePairs: distance between the closest points
-3. sknuth:
-  - CouponCollector: generates a random sequence of integers and counts how long til all got generated
-  - Gap: take an interval and look how many sequences of successive values don't fall into that interval at all
-  - Permutation: n non-overlapping vectors of t successive values from the generator - then ordering them and counting the permutations
-  - CollisionPermut: how many permutations map to the same value
-  - MaxOft: n groups of t values and computes the max for each group
-4. svaria:
-  - SumCollector: add a sequence of uniforms til their sum exceeds g
-5. sspectral:
-  - Fourier3:
-6. sstring:
-  - PeriodsInStrings: sth about the distribution of the correlations in bit strings of a certain length
+For the generators with a modulos close to 2^32 or even bigger, most testcases fail due to the nature of Lehmer RNGs having no duplicate elements within their period. Lemire doesn't have this issue for this value range, and it is the only RNG in this repository, which passes BigCrush.
+
+The generators with a modulos small than 2^31 would need some form of bit widdening algorithm to compensate for the state being a lot smaller than a full u32.
+
+- BirthdaySpacings: due to the birthday problem we would expect a lot of duplicates
+- CollisionOver: overlapping variant of counting collisions
+- Permutation: order n non-overlapping vectors of t successive values from the generator and count permutations
+- CollisionPermut: counting collisions for permutations
+- SerialOver: overlapping t-tuple test
+- ClosePairs: distance between the closest points (with lehmer they are too far away)
+- CouponCollector: generates a random sequence of integers and counts how long until all got generated
+- Gap: take an interval and look how many sequences of successive values don't fall into that interval at all
+- SumCollector: add a sequence of uniforms til their sum exceeds a given g
+- MaxOft: n groups of t values and computes the max for each group
+- Fourier3: Anderson-Darling and Kolmogorov-Smirnow statistic about the DFT
+- PeriodsInStrings: about the distribution of correlations in bit strings of a certain length
 
 ### NIST
 A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryptographic Applications
