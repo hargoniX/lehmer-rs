@@ -1,5 +1,3 @@
-use std::ops::RangeBounds;
-
 use clap::{Parser, Subcommand};
 
 use lehmer::c_ffi::{crush_it, lehmer_next};
@@ -9,9 +7,8 @@ use lehmer::core::{
     NaiveParkMiller, NaiveParkMillerOld, NaiveU32, ParkMillerEfficient, Randu, Waterman, INMOS,
 };
 
-use lehmer::find_parameters::find_lehmer_parameters_u32;
-use lehmer::find_parameters::find_lehmer_parameters_u64;
 #[allow(unused_imports)]
+use lehmer::find_parameters::{find_lehmer_parameters_u32, find_lehmer_parameters_u64};
 use lehmer::monte_carlo_pi::{check_difference, estimate_fixed_iterations};
 use lehmer::test_data::generate_all;
 use testu01_sys::{bbattery_BigCrush, bbattery_Crush, bbattery_SmallCrush};
@@ -25,22 +22,30 @@ const PATH: &str = "./figure.png";
 
 #[derive(Subcommand)]
 enum Action {
+    /// Generate testvector files for all generator variants for analysis with NIST sts
     Generate,
+    /// Estimate pi via monte carlo approximation for the currently selected generator
     Pi,
+    /// Compare the amount of iterations needed to estimate pi for some generators
     CompareRngPi,
+    /// Execute SmallCrush on the currently selected generator
     SmallCrush,
+    /// Execute Crush on the currently selected generator
     Crush,
+    /// Execute BigCrush on the currently selected generator
     BigCrush,
+    /// Find the parameters of the currently selected generator
     Break,
 }
 
-/// Either generate some testdata or do some manual monte carlo
+/// Suite around Lehmer RNGs.
+/// See the subcommands for some applications, statistical tests and breakage.
+/// `cargo bench` invokes criterion benchmarks for a fixed iteration count and a monte carlo approximation.
 #[derive(Parser)]
 struct Cli {
     #[command(subcommand)]
-    /// Generate Testvector or do some manual benchmarking
     command: Action,
-    /// Amount of multiples of min. bitstreamchunk length 2**20
+    /// Either chunk-multiples for NIST or fixed iteration count for monte carlo
     iterations: Option<u64>,
     /// Seed for the RNG
     seed: Option<u64>,
