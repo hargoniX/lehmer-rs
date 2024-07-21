@@ -67,7 +67,7 @@ Monte Carlo Approximation for Pi in n Dimensions
 
 ![Fixed Iterations](./assets/MC-fixed-precion.png "time series of estimates for fixed iterations")
 
-Per <a href="https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25">Marsaglia (1968)</a> Lehmer RNGs can work well with simple Monte Carlo examples. The "crystalline" structure (hyperplanes when n+1 random numbers viewed as points in n-dim space) can be problematic though. So we test whether this applies to n-dimensional Monte Carlo estimation of Pi. FastU32 Lehmer RNG doesn't converge for dimension 10 and seed 43 even after 2.500.000.000 iterations.
+Per <a href="https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25">Marsaglia (1968)</a> Lehmer RNGs can work well with simple Monte Carlo examples. The "crystalline" structure (hyperplanes when n random numbers viewed as points in n-dim space) can be problematic though. So we test whether this applies to n-dimensional Monte Carlo estimation of Pi. FastU32 Lehmer RNG doesn't converge for dimension 10 and seed 43 even after 2.500.000.000 iterations.
 
 ![Non Convergence](./assets/MC-non-converging.png "not converging towards pi after 2.500.000.000 iterations")
 
@@ -79,7 +79,7 @@ Generally for n-dimensional Monte Carlo estimation of Pi, <a href="10.13140/RG.2
 ## Find Parameters
 
 The "crystalline" structure (<a href="https://www.pnas.org/doi/pdf/10.1073/pnas.61.1.25">Marsaglia (1968)</a>) also helps in finding parameters of a LCG (therefor also of a Lehmer RNG).
-One can exploit that if n-tuples (z_i, ..., z_i+n) are viewed as points in unit cube of n dimensions, all points lie in relatively small numbers of hyperplanes.
+One can exploit that if n-tuples (z_i, ..., z_i+n-1) are viewed as points in unit cube of n dimensions, all points lie in relatively small numbers of hyperplanes.
 <a href="https://srmore.io/posts/breaking-linear-congruential-generator/">With the help of</a> some linear algebra it is possible to determine the modulus and the multiplicator of a Lehmer RNG, provided that the modulus is prime (not the case for all Lehmers in this project).
 
 Other algorithms (not implemented) that exploit predictableness of LCGs (again therefor Lehmer RNGs):
